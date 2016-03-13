@@ -1,0 +1,163 @@
+---
+title: "PA1_template"
+author: "Jasmin Moxham"
+date: "March 12, 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Reproduceable Research: Peer Assessment 1
+## Loading and preprocessing data
+
+```{r}
+library(knitr)
+library(ggplot2)
+library(lubridate)
+library(dplyr)
+```
+
+### Clean up workspace
+```{r}
+rm(list=ls())
+```
+
+###Set Working Director
+```{r}
+setwd('/Users/jazz7/Documents/R/repdata-data-activity')
+```
+
+
+###Read File
+Read in the columns as the desired classes
+```{r}
+activity = read.csv("activity.csv", header=TRUE, sep=",", stringsAsFactors=F, na.strings="?", 
+                    colClasses=c("numeric", "character", "numeric"))
+```
+
+###removing na values
+Remove the na values, but create a new dataframe when doing so to retain the intergrity of the original dataset.
+```{r}
+filtered <-activity %>% na.omit()
+```
+
+###Formate date using luridate 
+```{r}
+filtered$date <-ymd(filtered$date)
+```
+
+###Calculate steps per day 
+The code below pulls the variables from the filtered data (data with na omitted) *not* the original dataset 
+```{r}
+attach(filtered)
+stepsperday <- aggregate( steps ~ date, FUN=sum)
+```
+
+###A histogram of frequency fo the total steps in a day.  
+
+```{r}
+hist(stepsperday$steps, col="red", main = "Total Steps per Day", xlab = "Steps", ylab = "Frequency")
+```
+
+
+###The mean and median of the total steps per day
+
+```{r}
+mean_steps <- mean(stepsperday$steps)
+print(mean_steps)
+
+```
+
+```{r}
+median_steps <- median(stepsperday$steps)
+print(median_steps)
+```
+
+##Is there an average daily patteren?
+
+###Finding the mean of the steps based on the interval and not the date.
+```{r}
+interval <- aggregate(steps ~ interval, FUN=mean)
+```
+### Graph of the Average Daily Pattern
+```{r}
+ggplot(interval, aes(x=interval, y=steps)) + geom_line(color = "black")+ xlab("5-minute interval") + 
+    ylab("average number of steps taken")
+```
+###What time of day is the most active?
+```{r}
+interval[which.max(interval$steps), ]
+```
+
+To find out the approximate time of day
+```{r}
+835/60
+```
+
+which equals 13.916 or around 11:00 am 
+
+##Missing Values
+
+There are several data points that have NA as their step value.  This may skew the data or introduce us to some intresting patterens, such as, when does the person typically remove their monitor.  The original dataset, activity still has these missing values.
+
+###Create a datafram with missing values replaced with the mean of the steps 
+```{r}
+missing = transform(activity, steps = ifelse(is.na(activity$steps), mean(activity$steps, na.rm=TRUE), activity$steps))
+```
+
+###Create a new dataframe calculating the steps per day so we can have a comparison
+```{r}
+attach(missing)
+stepsperday_missing <- aggregate( steps ~ date, FUN=sum)
+
+```
+
+###Histogram of the results
+
+```{r}
+par(mfrow=c(1,2))
+hist(stepsperday$steps,10, col="red", main = "Total Steps per Day", xlab = "Steps", ylab = "Frequency")
+hist(stepsperday_missing$steps,10, col="red", main = "Total Steps per Day with Missing Data", xlab = "Steps", ylab = "Frequency")
+
+```
+
+```{r}
+mean(stepsperday$steps)
+```
+
+```{r}
+median(stepsperday$steps)
+```
+
+##The Average Daily Activity Pattern
+I used the dataset that included the missing values that were replaced with the mean value.  I created a function that looked at the data in the date column.
+```{r}
+str(missing)
+```
+
+as seen above the date column is recognized as a date with a the format of ymd as defined eairler.  The componet day used in the function below is a componet of lubridate, and it can find the name of the day of a given date.  To make it simple, I then defined an else if, if the day was = to these characters give it this assignment else, give it this other assignment.  This makes the dataset eaiser to graph. 
+
+
+```{r}
+weekday.or.weekend <- function(date) {
+  day <- weekdays(date)
+  if (day %in% c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday")) 
+    return("weekday") else if (day %in% c("Saturday", "Sunday")) 
+      return("weekend") else stop("invalid date")
+}
+missing$date <- as.Date(missing$date)
+missing$day <- sapply(missing$date, FUN = weekday.or.weekend)
+
+
+weeknames_averages <- aggregate(steps ~ interval + day, data = missing, mean)
+
+```
+
+
+```{r}
+ggplot(weeknames_averages, aes(interval, steps)) + geom_line() + facet_grid(day ~ .) + 
+  xlab("5-minute interval") + ylab("Number of steps")
+```
+
