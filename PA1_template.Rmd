@@ -60,7 +60,7 @@ stepsperday <- aggregate( steps ~ date, FUN=sum)
 ```{r}
 hist(stepsperday$steps, col="red", main = "Total Steps per Day", xlab = "Steps", ylab = "Frequency")
 ```
-![plot 1](./plot.png)
+![plot 1](./blob/master/plot%201.png)
 
 ###The mean and median of the total steps per day
 
