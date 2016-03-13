@@ -86,6 +86,7 @@ interval <- aggregate(steps ~ interval, FUN=mean)
 ggplot(interval, aes(x=interval, y=steps)) + geom_line(color = "black")+ xlab("5-minute interval") + 
     ylab("average number of steps taken")
 ```
+![plot 2](https://github.com/jasminmoxham/RepData_PeerAssessment1/blob/master/plot%202.png)
 ###What time of day is the most active?
 ```{r}
 interval[which.max(interval$steps), ]
@@ -122,7 +123,7 @@ hist(stepsperday$steps,10, col="red", main = "Total Steps per Day", xlab = "Step
 hist(stepsperday_missing$steps,10, col="red", main = "Total Steps per Day with Missing Data", xlab = "Steps", ylab = "Frequency")
 
 ```
-
+![plot 3](https://github.com/jasminmoxham/RepData_PeerAssessment1/blob/master/plot%203.png)
 ```{r}
 mean(stepsperday$steps)
 ```
@@ -160,4 +161,4 @@ weeknames_averages <- aggregate(steps ~ interval + day, data = missing, mean)
 ggplot(weeknames_averages, aes(interval, steps)) + geom_line() + facet_grid(day ~ .) + 
   xlab("5-minute interval") + ylab("Number of steps")
 ```
-
+![plot 4](https://github.com/jasminmoxham/RepData_PeerAssessment1/blob/master/plot%204.png)
